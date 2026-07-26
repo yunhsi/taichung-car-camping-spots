@@ -117,7 +117,7 @@ function createCarCampingSpot(row: CsvRow): CarCampingSpot {
   const normalizedRow: CsvRow = {
     ...row,
     地址: address,
-    [GOOGLE_MAP_URL_COLUMN]: getGoogleMapUrl(
+    [GOOGLE_MAP_URL_COLUMN]: getGoogleMapsUrl(
       row[GOOGLE_PLACE_ID_COLUMN],
       row["名稱"],
       address,
@@ -204,7 +204,7 @@ function pickColumns<const Column extends string>(
   >;
 }
 
-export function getGoogleMapUrl(
+export function getGoogleMapsUrl(
   placeId: string,
   placeName: string,
   address: string,

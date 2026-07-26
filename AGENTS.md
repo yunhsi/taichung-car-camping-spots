@@ -1,179 +1,96 @@
-# AGENTS.md
-
-# 專案介紹
-
-## 專案目的
+# 臺中車泊景點專案開發規範
 
 本專案以臺中市觀光景點開放資料整理適合車泊旅人的免費景點，提供地區與主題篩選、
-Google Maps 導航、距離排序、深色模式及本機收藏功能。
+Google Maps 導航、距離排序、深色模式，以及儲存在瀏覽器中的收藏與評論功能。
 
-請優先遵循本文件的開發規範，維持程式碼一致性、可維護性與可讀性。
-
----
+修改程式碼時，優先遵循本文件與既有程式碼慣例；產品說明、路由與資料內容請參考
+`README.md`。
 
 ## 技術棧
 
-### Framework
+- Next.js 16（App Router）
+- React 19
+- TypeScript（Strict Mode）
+- Tailwind CSS 4
+- shadcn/ui（Base UI）
+- class-variance-authority、clsx、tailwind-merge
+- Lucide React
+- ESLint、TypeScript Compiler
+- Node.js Test Runner、Testing Library、user-event
+- Playwright
 
-* Next.js 16（App Router）
-* React 19
+## 開發原則
 
-### Language
+- 優先考慮可讀性與可維護性，不過度追求簡短。
+- 優先重用既有 Component、Hook、Utility 與 semantic token。
+- 保持既有架構與風格，不進行與需求無關的重構。
+- 不為尚未出現的需求預先建立抽象層或複雜設計。
+- 修改範圍應盡量小，但不能以犧牲正確性或測試為代價。
+- 不覆蓋、回復或整理與目前需求無關的既有變更。
 
-* TypeScript
+## Next.js 與 React
 
-### Styling
+### Server 與 Client Component
 
-* Tailwind CSS 4
-* Radix UI
-* class-variance-authority
-* clsx
-* tailwind-merge
-* Lucide React
+- 一律使用 App Router，預設採用 Server Component。
+- Route Groups 用於組織路由而不影響 URL；Nested Layout 用於共享路由區段的版面。
+- 需要事件處理、React client hooks、Context、Browser API，或只能在瀏覽器執行的套件時，
+  才加入 `"use client"`。
+- 將 Client Component 邊界放在最接近互動需求的位置，避免整個頁面不必要地成為
+  Client Component。
 
-### Code Quality
+### 資料取得
 
-* ESLint
-* TypeScript Compiler
-* Node.js Test Runner
-* Testing Library
+- 初始頁面資料優先由 Server Component 取得與整理。
+- 純 UI Component 不直接負責 API 呼叫或外部資料解析。
+- 即時更新或只能從瀏覽器取得的資料可在 Client 端讀取，但應封裝在對應 feature 的
+  `data/`、`lib/` 或專用 Hook。
+- 外部或不可信資料先以 `unknown` 接收、驗證並 Normalize，再轉成專案型別。
+- Component 只接收整理完成的資料，不直接依賴 CSV 欄位或外部 API 格式。
 
----
+### Component 與 Hook
 
-# 開發原則
+- 一律使用 Function Component，並保持責任清楚。
+- Component 同時包含資料處理、複雜商業邏輯與多個獨立畫面區塊時，應考慮拆分。
+- 超過約 200 行、JSX 巢狀過深或出現重複區塊，是檢視拆分的訊號，不是硬性限制。
+- Custom Hook 可用於共用邏輯，或隔離具有獨立責任的複雜狀態與副作用。
+- 不要只為縮短 Component 或搬移少量程式碼而機械式建立 Hook。
 
-* 優先考慮程式碼可讀性，而非過度追求簡潔。
-* 優先考慮可維護性，而非一次性完成。
-* 優先重用既有元件，不要重複開發。
-* 發現重複邏輯時，應主動提出抽離建議。
-* 避免過度設計（Over Engineering）。
-* 不要為了未來可能的需求提前加入複雜設計。
-* 修改程式碼時應保持既有架構與風格一致。
+### 狀態管理
 
----
+依狀態性質選擇管理方式：
 
-# Next.js
+- 僅影響單一元件或局部互動：Local State。
+- 需要分享、書籤或重新整理後還原：URL Search Params。
+- 來自伺服器或遠端來源：Server State。
+- 真正跨多個功能且無法由上述方式合理管理：Global State。
+- `localStorage` 等 Browser API 應封裝在 Client Component 或 feature 專屬模組。
 
-## App Router
+不要只因傳遞方便就引入全域狀態。
 
-* 一律使用 App Router。
-* 優先使用 Nested Layout。
-* 使用 Route Groups 管理大型功能模組。
+## TypeScript
 
-## Server Component
+- `tsconfig.json` 必須維持 `strict: true`，不得忽略型別錯誤。
+- 不得使用 `any`、`@ts-ignore` 或其他繞過型別檢查的做法。
+- 外部資料使用 `unknown`，經過驗證與縮窄後再使用。
+- 物件資料結構優先使用 `interface`。
+- Union、Utility Type、mapped type 與需要組合的型別使用 `type`。
+- 功能型別優先集中於對應 feature 的 `types.ts`；只有緊鄰單一元件使用的 props 型別可
+  留在元件檔案中。
 
-預設使用 Server Component。
+## 景點資料流程
 
-只有需要以下情況時才改用 Client Component：
+主要來源檔為：
 
-* 使用事件（Event Handler）
-* 使用 `useState`
-* 使用 `useEffect`
-* 使用 Browser API
-* 使用只能在瀏覽器執行的第三方套件
+`src/features/attractions/data/taichung-attraction.csv`
 
-## Client Component
+以下檔案由轉換流程產生，不得直接手動修改：
 
-* 僅在需要互動時加入 `"use client"`。
-* 避免整個頁面都成為 Client Component。
+- `taichung-attraction-list.json`
+- `taichung-attraction-details.json`
+- `taichung-theme-categories.json`
 
-## Data Fetching
-
-* Server Component 負責資料取得。
-* 不要在純 UI Component 中直接呼叫 API。
-* 避免不必要的 Client Fetch。
-* 可分享、可回復的篩選狀態優先使用 URL Search Params。
-* `localStorage` 等 Browser API 應封裝在 Client Component 或 feature 專屬模組。
-
----
-
-# React
-
-## Component
-
-* 一律使用 Function Component。
-* Component 保持單一職責。
-
-避免：
-
-* 一個 Component 同時負責資料取得、商業邏輯與畫面呈現。
-
-建議拆分：
-
-* Container（資料）
-* Presentational（畫面）
-
-Component 出現以下情況時應考慮拆分：
-
-* 超過約 200 行程式碼
-* JSX 巢狀過深
-* 多個獨立區塊
-* 有重複使用需求
-
-行數是拆分訊號，不是硬性限制；應以元件責任是否清楚作為主要判斷。
-
----
-
-## Hooks
-
-* 只有真正需要共用邏輯時才建立 Custom Hook。
-* 不要把只有一個 Component 使用的邏輯硬拆成 Hook。
-
----
-
-## 狀態管理
-
-優先順序：
-
-1. Local State
-2. URL Search Params
-3. Server State
-4. Global State
-
-不要因為方便就使用全域狀態。
-
----
-
-# TypeScript
-
-## 必須遵守
-
-* 啟用 Strict Mode 思維撰寫程式。
-* 不得使用 `any`。
-* 外部 API 資料優先使用 `unknown` 後再解析。
-* 型別錯誤不得忽略。
-* 不得使用 `@ts-ignore`。
-
-## interface 與 type
-
-遵循以下原則：
-
-* 物件資料使用 `interface`
-* Union、Utility Type 使用 `type`
-
-例如：
-
-```ts
-interface Attraction {
-  id: string;
-  name: string;
-}
-
-type Theme = "nature" | "culture";
-```
-
----
-
-# 資料與資料流
-
-## 專案資料
-
-* 景點 CSV 是主要來源資料，位於
-  `src/features/attractions/data/taichung-attraction.csv`。
-* 不要直接手動修改由轉換流程產生的景點列表、詳細資料與主題 JSON。
-* 修改來源資料或轉換規則後，執行 `npm run convert`。
-* 轉換後應檢視產出差異，並執行 `npm run check`。
-* Component 應依賴整理後的專案型別，不直接依賴 CSV 欄位或外部資料格式。
+`taichung-townships.json` 是專案手動維護的行政區與排序資料，不由轉換腳本產生。
 
 資料流程：
 
@@ -186,22 +103,18 @@ CSV
 ↓
 產生 JSON
 ↓
+轉成專案型別
+↓
 React Component
 ```
 
-## 外部 API
+修改 CSV 或轉換規則後：
 
-目前沒有集中式遠端 API 層。未來新增 API 時：
+1. 執行 `npm run convert`。
+2. 檢視三個產出 JSON 的差異與景點數量是否合理。
+3. 執行 `npm run check`。
 
-* 不要直接在純 UI Component 中撰寫 `fetch`。
-* API 呼叫、解析與 Normalize 應放在對應 feature 的 `data/` 或 `lib/`。
-* 跨 feature 共用後再考慮建立 `services/`。
-* 外部或不可信資料先以 `unknown` 接收並驗證，再轉成專案型別。
-* Component 只接收整理完成的資料。
-
----
-
-# 專案架構
+## 專案架構
 
 本專案採 feature-first 架構：
 
@@ -214,204 +127,87 @@ src/
 ├── features/
 │   └── <feature>/
 │       ├── components/     # 功能專屬畫面元件
-│       ├── data/           # 功能資料來源與存取
+│       ├── data/           # 功能資料來源、解析與儲存
 │       ├── lib/            # 功能專屬邏輯
 │       └── types.ts        # 功能型別
 └── lib/                    # 跨功能共用工具
 ```
 
-* 功能專屬程式優先放在對應的 `features/<feature>`。
-* 只有跨功能使用的 UI 才放入 `components/ui`。
-* 只有跨功能使用的工具才放入 `src/lib`。
-* 不要為了預想需求建立空的頂層目錄或抽象層。
-
----
-
-# 命名規則
-
-## Component
-
-使用 PascalCase。
-
-例如：
-
-```
-AttractionCard
-```
-
----
-
-## Function
-
-使用 camelCase。
-
-例如：
-
-```
-getGoogleMapUrl
-```
-
----
-
-## Hook
-
-以 `use` 開頭。
-
-例如：
-
-```
-useSearchFilter
-```
-
----
-
-## Constant
-
-使用 UPPER_SNAKE_CASE。
-
-例如：
-
-```
-MAX_IMAGE_SIZE
-```
-
----
-
-## 檔名
-
-* Component：PascalCase
-* Hook：camelCase
-* Utility：camelCase
-* 功能型別集中於該 feature 的 `types.ts`
-* 測試檔使用與受測對象相對應的 `*.test.ts` 或 `*.test.tsx`
-
----
-
-# Coding Style
-
-## Import 順序
-
-依照以下順序：
-
-1. Side effect 或測試環境初始化
-2. Node.js built-in
-3. React / Next
-4. 第三方套件
-5. Alias（`@/`）
-6. 相對路徑
-
-每個區塊之間保留一行空白。
-同資料夾模組可使用相對路徑，其餘 `src/` 內模組優先使用 `@/` Alias。
-
----
-
-## Tailwind CSS
-
-* 避免 inline style。
-* 避免重複 className。
-* Component 優先使用 `bg-surface`、`text-foreground`、`text-muted` 等 semantic token。
-* 不要在 Component 直接使用色碼或 Tailwind palette 顏色。
-* 新增顏色時，在 `globals.css` 同時定義 light 與 dark theme token。
-* UI variants 使用 class-variance-authority；條件樣式與 class 合併使用 `cn()`。
-* 優先擴充 `components/ui` 既有元件，不要重做 Button、Dialog、Tooltip 等基礎元件。
-
----
-
-## Error Handling
-
-不要忽略例外。
-
-只有在能夠復原、補充錯誤脈絡，或位於應用程式邊界時才捕捉例外；
-其他情況讓錯誤自然向上傳遞，不要加入沒有處理價值的 `try/catch`。
-
-不要：
-
-```ts
-catch {}
-```
-
----
-
-## Console
-
-提交前不得保留：
-
-* `console.log`
-* `console.debug`
-
-除非為必要錯誤紀錄。
-
----
-
-## 註解
-
-註解應說明：
-
-* 為什麼（Why）
-
-不要說明：
-
-* 做了什麼（What）
-
-程式碼本身應足夠清楚。
-
----
-
-## 可讀性
-
-避免：
-
-* 巢狀過深
-* 過長函式
-* Magic Number
-* 不具意義的命名
-
-複雜判斷請拆成獨立 Function。
-
----
-
-# 重構
-
-若發現：
-
-* 相同邏輯出現兩次以上
-* 相同 JSX 出現兩次以上
-* Component 過大
-* Function 過長
-* Props 過多
-
-請主動建議抽離：
-
-* Component
-* Hook
-* Utility
-* Constant
-
----
-
-# 無障礙（Accessibility）
-
-* 所有圖片必須提供 `alt`。
-* Button 必須具有可辨識名稱。
-* 適當使用 Semantic HTML。
-* 表單應正確關聯 `label`。
-* Dialog、Tooltip 等互動元件優先沿用 Radix UI 的鍵盤與焦點管理。
-* 非同步錯誤或狀態更新應提供適當的 `role`、`aria-live` 或關聯描述。
-* 關閉 Dialog 後，應盡可能將焦點還原至原觸發元素。
-
----
-
-# 測試與驗證
-
-## 測試
-
-* 純函式與資料轉換使用 Node.js Test Runner。
-* React 元件互動使用 Testing Library 與 `user-event`。
-* 測試使用者可觀察的行為，避免依賴元件內部實作細節。
-* 修改既有行為時，應新增或更新對應測試。
-* Browser API 測試應沿用 `tests/testDom.ts` 的測試環境。
-
-## 完成條件
+- 功能專屬程式優先放在對應的 `features/<feature>`。
+- 只有跨功能使用的 UI 才放入 `components/ui`。
+- 只有跨功能使用的工具才放入 `src/lib`。
+- API 呼叫、解析與 Normalize 優先放在對應 feature 的 `data/` 或 `lib/`。
+- 邏輯確實跨 feature 共用後，再考慮建立新的共用層。
+- 不為預想需求建立空目錄或抽象層。
+
+## 命名與檔案
+
+- Component 與 Component 檔名：PascalCase，例如 `AttractionCard.tsx`。
+- Function 與 Utility：camelCase，例如 `getGoogleMapUrl`。
+- Hook 及其檔名：以 `use` 開頭，例如 `useFavorites.ts`。
+- 模組層級常數：UPPER_SNAKE_CASE，例如 `MAX_IMAGE_SIZE`。
+- 測試檔：與受測行為對應的 `*.test.ts` 或 `*.test.tsx`。
+
+## Import
+
+依照下列順序分組，各組之間保留一行：
+
+1. Side effect 或測試環境初始化。
+2. Node.js built-in。
+3. React / Next.js。
+4. 第三方套件。
+5. Alias（`@/`）。
+6. 相對路徑。
+
+同資料夾模組可使用相對路徑；其他 `src/` 模組優先使用 `@/` Alias。型別匯入優先使用
+`import type`，或在具名匯入中使用 `type` 修飾。
+
+## 樣式與 UI
+
+- 避免 inline style 與重複的 `className` 組合。
+- Component 優先使用 `bg-surface`、`text-foreground`、`text-muted` 等 semantic token。
+- 不在 Component 直接使用色碼或 Tailwind palette 顏色。
+- 新增顏色時，在 `src/app/globals.css` 同時定義 light 與 dark theme token。
+- 條件樣式與 class 合併使用 `cn()`。
+- 多變體或可重用的 UI 元件使用 class-variance-authority；簡單的一次性條件樣式不必強制
+  建立 variant。
+- 優先擴充 `components/ui` 既有元件，不重做 Button、Dialog、Tooltip 等基礎元件。
+- `components/ui` 是專案的 shadcn/ui 基礎層；互動 primitive 統一使用 Base UI。
+- `app`、`features` 與 `components/site` 不得直接匯入 `@base-ui/react`，只能使用
+  `@/components/ui` 封裝完成的元件。
+- 不得新增 Radix UI dependency 或 import。
+
+## 錯誤處理與可讀性
+
+- 不忽略例外，也不得使用空的 `catch`。
+- 只有在能復原、補充錯誤脈絡或位於應用程式邊界時捕捉例外；其他錯誤讓其向上傳遞。
+- 提交前不得保留 `console.log` 或 `console.debug`；必要的錯誤紀錄除外。
+- 註解用於說明決策原因或不直觀限制，不重述程式碼本身。
+- 避免過深巢狀、過長函式、Magic Number 與不具意義的命名。
+- 相同邏輯或 JSX 出現兩次以上時，評估抽離 Component、Hook、Utility 或 Constant；只有在
+  能改善責任劃分或維護性時才進行抽離。
+
+## 無障礙
+
+- 資訊圖片提供有意義的 `alt`；裝飾圖片使用空的 `alt=""`。
+- Button 與其他互動控制項必須具有可辨識名稱。
+- 使用適當的 Semantic HTML，表單控制項應正確關聯 `label`。
+- Dialog、Tooltip 等互動元件優先沿用 shadcn/ui 與 Base UI 的鍵盤、焦點及 ARIA 管理。
+- 非同步錯誤或狀態更新應提供適當的 `role`、`aria-live` 或關聯描述。
+- 關閉 Dialog 後，應盡可能將焦點還原至原觸發元素。
+
+## 測試與驗證
+
+### 測試原則
+
+- 純函式與資料轉換使用 Node.js Test Runner。
+- React 元件互動使用 Testing Library 與 `user-event`。
+- Browser API 測試沿用 `tests/testDom.ts` 的測試環境。
+- 測試使用者可觀察的行為，避免依賴元件內部實作細節。
+- 修改既有行為時，新增或更新對應測試。
+- 跨頁導航、URL 狀態、瀏覽器歷史或主要使用流程使用 Playwright E2E 測試。
+
+### 完成條件
 
 一般程式修改完成後執行：
 
@@ -419,27 +215,37 @@ catch {}
 npm run check
 ```
 
-`npm run check` 包含 ESLint、TypeScript 型別檢查及測試。
+`npm run check` 包含 ESLint、TypeScript 型別檢查及 Node.js/Testing Library 測試。
 
-修改路由、Next.js 設定、Server/Client Component 邊界或正式建置相關內容時，
-再執行：
+修改下列內容時，再執行 `npm run build`：
 
-```bash
-npm run build
-```
+- 路由、Layout 或 Next.js 設定。
+- Server / Client Component 邊界。
+- Metadata、靜態資源載入或正式建置相關內容。
 
----
+修改下列行為時，再執行 `npm run test:e2e`：
 
-# AI Workflow
+- 跨頁導航或關鍵使用流程。
+- URL Search Params、瀏覽器 history 或重新整理後的狀態還原。
+- 難以由 Testing Library 可靠覆蓋的瀏覽器整合行為。
 
-修改程式碼時：
+純文件修改不需要執行程式測試，但應檢查內容與目前的 `package.json`、目錄結構及實際命令
+一致。
 
-* 優先修改最少範圍。
-* 不要無關重構。
-* 不要修改未要求的功能。
-* 優先沿用既有架構與設計。
-* 優先重用既有 Component、Hook 與 Utility。
-* 若需求不明確，先提出可能方案，不要自行假設需求。
-* 若有更佳做法，可於最後提出建議，但不要直接改動未要求的內容。
-* 不要覆蓋或回復與目前需求無關的既有變更。
-* 完成後執行與修改範圍相稱的驗證，避免未使用的變數、Import 或程式碼。
+## AI 工作流程
+
+- 修改前先閱讀相關檔案、既有測試及目前工作區差異。
+- 低風險且不影響產品行為的細節，可依現有慣例合理判斷並在結果中說明。
+- 若不同選項會顯著改變功能、資料、公開介面或使用者體驗，應先確認需求。
+- 若發現更佳但不屬於需求範圍的做法，只在結果中提出建議，不直接改動。
+- 完成後執行與修改範圍相稱的驗證，並移除未使用的變數、Import 與死碼。
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

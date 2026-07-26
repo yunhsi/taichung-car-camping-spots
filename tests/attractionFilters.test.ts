@@ -7,7 +7,7 @@ import {
   sortAttractionsByTownshipOrder,
 } from "../src/features/attractions/lib/attractionFilters";
 
-const attractions = [
+const ATTRACTIONS = [
   {
     name: "山區景點",
     address: "臺中市和平區範例路 1 號",
@@ -26,7 +26,7 @@ const attractions = [
 ];
 
 test("地區與主題條件採交集篩選", () => {
-  const result = filterAttractions(attractions, {
+  const result = filterAttractions(ATTRACTIONS, {
     townships: ["和平區"],
     categories: ["自然風景"],
   });
@@ -38,7 +38,7 @@ test("地區與主題條件採交集篩選", () => {
 });
 
 test("同類型的多個條件採聯集篩選", () => {
-  const result = filterAttractions(attractions, {
+  const result = filterAttractions(ATTRACTIONS, {
     townships: [],
     categories: ["自然風景", "藝術文化"],
   });
@@ -47,12 +47,12 @@ test("同類型的多個條件採聯集篩選", () => {
 });
 
 test("空白條件會保留所有景點", () => {
-  const result = filterAttractions(attractions, {
+  const result = filterAttractions(ATTRACTIONS, {
     townships: [],
     categories: [],
   });
 
-  assert.deepEqual(result, attractions);
+  assert.deepEqual(result, ATTRACTIONS);
 });
 
 test("搜尋參數會移除重複值與無效值", () => {
@@ -67,9 +67,9 @@ test("搜尋參數會移除重複值與無效值", () => {
 test("景點依地區列表順序排列，且同區維持原始順序", () => {
   const result = sortAttractionsByTownshipOrder(
     [
-      attractions[0],
-      attractions[2],
-      attractions[1],
+      ATTRACTIONS[0],
+      ATTRACTIONS[2],
+      ATTRACTIONS[1],
       {
         name: "另一個市區景點",
         address: "臺中市西區範例路 4 號",

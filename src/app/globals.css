@@ -1,4 +1,8 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 /*
  * Components consume semantic tokens instead of palette values so both themes
@@ -7,78 +11,112 @@
 :root {
   color-scheme: light;
   --background: #f7f5ef;
-  --surface: #ffffff;
-  --surface-elevated: #fcfbf7;
   --foreground: #17201c;
-  --muted: #66736d;
+  --card: #ffffff;
+  --card-foreground: #17201c;
+  --popover: #ffffff;
+  --popover-foreground: #17201c;
+  --muted: #fcfbf7;
+  --muted-foreground: #66736d;
   --border: #d9dfda;
-  --control-border: #8a9791;
+  --input: #8a9791;
   --primary: #28745a;
   --primary-hover: #205f4a;
   --primary-foreground: #ffffff;
-  --primary-soft: #e3f1e9;
-  --accent: #d97732;
-  --accent-hover: #b85e22;
-  --accent-foreground: #ffffff;
-  --accent-strong: #a34f17;
-  --accent-soft: #fff0df;
+  --secondary: #e3f1e9;
+  --secondary-foreground: #28745a;
+  --accent: #fcfbf7;
+  --accent-foreground: #17201c;
+  --highlight: #d97732;
+  --highlight-strong: #a34f17;
+  --highlight-soft: #fff0df;
   --page-glow:
     radial-gradient(circle at 8% 5%, rgb(40 116 90 / 12%), transparent 28rem),
     radial-gradient(circle at 92% 12%, rgb(217 119 50 / 13%), transparent 24rem);
-  --success: #277a53;
-  --warning: #ad5b20;
-  --danger: #bc3e3e;
-  --focus-ring: #28745a;
+  --destructive: #bc3e3e;
+  --ring: #28745a;
+  --toast-background: #252937;
+  --toast-border: #454b5d;
+  --toast-foreground: #f8fafc;
+  --toast-muted: #cbd2df;
+  --toast-success: #7dd3fc;
+  --toast-success-soft: #173b56;
+  --toast-destructive: #fda4af;
+  --toast-destructive-soft: #4b202c;
+  --toast-control-hover: #373d4d;
+  --toast-focus-ring: #fbbf24;
+  --brand-mark-background: #2b7b60;
+  --brand-mark-border: #164b39;
+  --brand-mark-foreground: #fffaf2;
+  --brand-mark-accent: #f2994a;
 }
 
 html.dark {
   color-scheme: dark;
   --background: #101916;
-  --surface: #19241f;
-  --surface-elevated: #202d27;
   --foreground: #edf4f0;
-  --muted: #9eada6;
+  --card: #19241f;
+  --card-foreground: #edf4f0;
+  --popover: #19241f;
+  --popover-foreground: #edf4f0;
+  --muted: #202d27;
+  --muted-foreground: #9eada6;
   --border: #33443c;
-  --control-border: #64786e;
+  --input: #64786e;
   --primary: #68c49b;
   --primary-hover: #83d2ad;
   --primary-foreground: #0d2118;
-  --primary-soft: #213b31;
-  --accent: #f2a35e;
-  --accent-hover: #ffb675;
-  --accent-foreground: #291407;
-  --accent-strong: #f2b46f;
-  --accent-soft: #402d1e;
+  --secondary: #213b31;
+  --secondary-foreground: #68c49b;
+  --accent: #202d27;
+  --accent-foreground: #edf4f0;
+  --highlight: #f2a35e;
+  --highlight-strong: #f2b46f;
+  --highlight-soft: #402d1e;
   --page-glow:
     radial-gradient(circle at 8% 5%, rgb(104 196 155 / 10%), transparent 28rem),
     radial-gradient(circle at 92% 12%, rgb(242 163 94 / 10%), transparent 24rem);
-  --success: #69c99b;
-  --warning: #f2b46f;
-  --danger: #f08b8b;
-  --focus-ring: #68c49b;
+  --destructive: #f08b8b;
+  --ring: #68c49b;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-surface-elevated: var(--surface-elevated);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --color-control-border: var(--control-border);
+  --color-input: var(--input);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
-  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
-  --color-accent-strong: var(--accent-strong);
-  --color-accent-soft: var(--accent-soft);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
-  --color-focus-ring: var(--focus-ring);
+  --color-highlight: var(--highlight);
+  --color-highlight-strong: var(--highlight-strong);
+  --color-highlight-soft: var(--highlight-soft);
+  --color-destructive: var(--destructive);
+  --color-ring: var(--ring);
+  --color-toast-background: var(--toast-background);
+  --color-toast-border: var(--toast-border);
+  --color-toast-foreground: var(--toast-foreground);
+  --color-toast-muted: var(--toast-muted);
+  --color-toast-success: var(--toast-success);
+  --color-toast-success-soft: var(--toast-success-soft);
+  --color-toast-destructive: var(--toast-destructive);
+  --color-toast-destructive-soft: var(--toast-destructive-soft);
+  --color-toast-control-hover: var(--toast-control-hover);
+  --color-toast-focus-ring: var(--toast-focus-ring);
+  --color-brand-mark-background: var(--brand-mark-background);
+  --color-brand-mark-border: var(--brand-mark-border);
+  --color-brand-mark-foreground: var(--brand-mark-foreground);
+  --color-brand-mark-accent: var(--brand-mark-accent);
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -102,7 +140,7 @@ body {
 
 button,
 a {
-  outline-color: var(--focus-ring);
+  outline-color: var(--ring);
 }
 
 :where(

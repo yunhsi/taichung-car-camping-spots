@@ -4,26 +4,24 @@ import { useMemo, useSyncExternalStore } from "react";
 
 import {
   getFavoriteIdsSnapshot,
+  getFavoritesLoadedSnapshot,
   getFavoriteStatusSnapshot,
   subscribeToFavorites,
-  toggleFavoriteId,
-} from "@/features/favorites/favoritesStorage";
+} from "@/features/favorites/data/favoritesStore";
+import { useUserData } from "@/features/user/components/UserDataProvider";
 
 interface FavoritesValue {
   favoriteIdSet: ReadonlySet<string>;
-  isHydrated: boolean;
+  isLoaded: boolean;
 }
 
 interface FavoriteValue {
   isFavorite: boolean;
-  toggleFavorite: (attractionId: string) => void;
+  isLoaded: boolean;
+  toggleFavorite: () => Promise<void>;
 }
 
 const EMPTY_FAVORITE_IDS: readonly string[] = [];
-
-function subscribeToHydration() {
-  return () => undefined;
-}
 
 export function useFavorites(): FavoritesValue {
   const favoriteIds = useSyncExternalStore(
@@ -31,26 +29,35 @@ export function useFavorites(): FavoritesValue {
     getFavoriteIdsSnapshot,
     () => EMPTY_FAVORITE_IDS,
   );
-  const isHydrated = useSyncExternalStore(
-    subscribeToHydration,
-    () => true,   // 瀏覽器執行時
-    () => false,  // 伺服器渲染時
+  const isLoaded = useSyncExternalStore(
+    subscribeToFavorites,
+    getFavoritesLoadedSnapshot,
+    () => false,
   );
-  // 轉換後可使用 .has 快速判斷某個景點是否已收藏
   const favoriteIdSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
 
   return {
     favoriteIdSet,
-    isHydrated,
+    isLoaded,
   };
 }
 
 export function useFavorite(attractionId: string): FavoriteValue {
+  const { setFavorite } = useUserData();
   const isFavorite = useSyncExternalStore(
     subscribeToFavorites,
     () => getFavoriteStatusSnapshot(attractionId),
     () => false,
   );
+  const isLoaded = useSyncExternalStore(
+    subscribeToFavorites,
+    getFavoritesLoadedSnapshot,
+    () => false,
+  );
 
-  return { isFavorite, toggleFavorite: toggleFavoriteId };
+  return {
+    isFavorite,
+    isLoaded,
+    toggleFavorite: () => setFavorite(attractionId, !isFavorite),
+  };
 }

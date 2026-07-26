@@ -1,18 +1,61 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parseFavoriteIds } from "../src/features/favorites/favoritesStorage";
+import { readAttractions } from "@/features/attractions/data/attractions";
+import {
+  getFavoriteIdsSnapshot,
+  replaceFavoriteIds,
+  setFavoriteIdStatus,
+  subscribeToFavorites,
+} from "@/features/favorites/data/favoritesStore";
+import { parseFavoriteUpdateInput } from "@/features/favorites/lib/favoriteValidation";
 
-test("收藏快照只保留不重複的非空字串", () => {
-  const result = parseFavoriteIds(
-    JSON.stringify(["spot-1", 123, " ", "spot-1", null, " spot-2 "]),
-  );
+const ATTRACTION_ID = readAttractions()[0]?.id;
 
-  assert.deepEqual(result, ["spot-1", "spot-2"]);
+if (!ATTRACTION_ID) {
+  throw new Error("測試需要至少一個景點。");
+}
+
+test.beforeEach(() => {
+  replaceFavoriteIds([]);
 });
 
-test("損毀或非陣列的收藏快照會安全地回傳空陣列", () => {
-  assert.deepEqual(parseFavoriteIds("{invalid"), []);
-  assert.deepEqual(parseFavoriteIds(JSON.stringify({ id: "spot-1" })), []);
-  assert.deepEqual(parseFavoriteIds(null), []);
+test("收藏修改只接受已知景點與布林狀態", () => {
+  assert.deepEqual(
+    parseFavoriteUpdateInput({ attractionId: ATTRACTION_ID, isFavorite: true }),
+    { attractionId: ATTRACTION_ID, isFavorite: true },
+  );
+  assert.equal(
+    parseFavoriteUpdateInput({ attractionId: "unknown", isFavorite: true }),
+    null,
+  );
+  assert.equal(
+    parseFavoriteUpdateInput({ attractionId: ATTRACTION_ID }),
+    null,
+  );
+});
+
+test("伺服器收藏快照可取代記憶體狀態並更新個別收藏", () => {
+  replaceFavoriteIds([ATTRACTION_ID, ATTRACTION_ID]);
+  setFavoriteIdStatus(ATTRACTION_ID, false);
+
+  assert.deepEqual(getFavoriteIdsSnapshot(), []);
+});
+
+test("收藏通知只呼叫更新開始時已存在的訂閱者", () => {
+  let addedListenerCalls = 0;
+  let unsubscribeAddedListener: () => void = () => undefined;
+  let unsubscribeInitialListener: () => void = () => undefined;
+
+  unsubscribeInitialListener = subscribeToFavorites(() => {
+    unsubscribeInitialListener();
+    unsubscribeAddedListener = subscribeToFavorites(() => {
+      addedListenerCalls += 1;
+    });
+  });
+
+  replaceFavoriteIds([ATTRACTION_ID]);
+
+  assert.equal(addedListenerCalls, 0);
+  unsubscribeAddedListener();
 });

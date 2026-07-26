@@ -1,55 +1,98 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
+import { X } from "lucide-react";
 
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
-function Dialog({
-  ...props
-}: ComponentProps<typeof DialogPrimitive.Root>) {
+function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
-function DialogTrigger({
-  ...props
-}: ComponentProps<typeof DialogPrimitive.Trigger>) {
+function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
-function DialogClose({
-  ...props
-}: ComponentProps<typeof DialogPrimitive.Close>) {
+function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
+}
+
+function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+}
+
+function DialogOverlay({
+  className,
+  ...props
+}: DialogPrimitive.Backdrop.Props) {
+  return (
+    <DialogPrimitive.Backdrop
+      data-slot="dialog-overlay"
+      className={cn(
+        "fixed inset-0 isolate z-70 bg-black/55 backdrop-blur-sm transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 function DialogContent({
   className,
+  children,
+  layer = "default",
+  scrollable = false,
+  showCloseButton = false,
   ...props
-}: ComponentProps<typeof DialogPrimitive.Content>) {
+}: DialogPrimitive.Popup.Props & {
+  layer?: "default" | "nested";
+  scrollable?: boolean;
+  showCloseButton?: boolean;
+}) {
+  const isNestedLayer = layer === "nested";
+
   return (
-    <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay
-        data-slot="dialog-overlay"
-        className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm"
+    <DialogPortal>
+      <DialogOverlay
+        className={isNestedLayer ? "z-80" : undefined}
+        forceRender={isNestedLayer}
       />
-      <DialogPrimitive.Content
+      <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-surface text-foreground shadow-2xl outline-none",
+          "fixed top-1/2 left-1/2 z-70 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl outline-none transition-[opacity,scale] duration-150 data-ending-style:scale-[0.97] data-ending-style:opacity-0 data-starting-style:scale-[0.97] data-starting-style:opacity-0 motion-reduce:transition-none",
+          isNestedLayer && "z-80",
+          scrollable &&
+            "flex max-h-[calc(100dvh-4rem)] flex-col overflow-hidden p-0 sm:max-h-[85dvh]",
           className,
         )}
         {...props}
-      />
-    </DialogPrimitive.Portal>
+      >
+        {children}
+        {showCloseButton ? (
+          <DialogPrimitive.Close
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="absolute top-3 right-3 rounded-full"
+              />
+            }
+          >
+            <X aria-hidden="true" />
+            <span className="sr-only">關閉</span>
+          </DialogPrimitive.Close>
+        ) : null}
+      </DialogPrimitive.Popup>
+    </DialogPortal>
   );
 }
 
 function DialogTitle({
   className,
   ...props
-}: ComponentProps<typeof DialogPrimitive.Title>) {
+}: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
@@ -62,11 +105,11 @@ function DialogTitle({
 function DialogDescription({
   className,
   ...props
-}: ComponentProps<typeof DialogPrimitive.Description>) {
+}: DialogPrimitive.Description.Props) {
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-sm text-muted", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   );

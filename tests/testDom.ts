@@ -12,8 +12,17 @@ export function installTestDom(): JSDOM {
   const dom = new JSDOM("<!doctype html><html><body></body></html>", {
     url: "http://localhost",
   });
+  const requestAnimationFrame = (callback: FrameRequestCallback): number =>
+    dom.window.setTimeout(() => callback(Date.now()), 0);
+  const cancelAnimationFrame = (handle: number): void => {
+    dom.window.clearTimeout(handle);
+  };
 
   Object.defineProperties(globalThis, {
+    cancelAnimationFrame: {
+      configurable: true,
+      value: cancelAnimationFrame,
+    },
     CustomEvent: { configurable: true, value: dom.window.CustomEvent },
     document: { configurable: true, value: dom.window.document },
     DocumentFragment: {
@@ -46,12 +55,10 @@ export function installTestDom(): JSDOM {
     },
     requestAnimationFrame: {
       configurable: true,
-      value: (callback: FrameRequestCallback) => {
-        callback(0);
-        return 0;
-      },
+      value: requestAnimationFrame,
     },
     ResizeObserver: { configurable: true, value: TestResizeObserver },
+    self: { configurable: true, value: dom.window },
     StorageEvent: { configurable: true, value: dom.window.StorageEvent },
     window: { configurable: true, value: dom.window },
     IS_REACT_ACT_ENVIRONMENT: {
@@ -70,6 +77,16 @@ export function installTestDom(): JSDOM {
   Object.defineProperty(dom.window, "scrollTo", {
     configurable: true,
     value: () => undefined,
+  });
+  Object.defineProperties(dom.window, {
+    cancelAnimationFrame: {
+      configurable: true,
+      value: cancelAnimationFrame,
+    },
+    requestAnimationFrame: {
+      configurable: true,
+      value: requestAnimationFrame,
+    },
   });
 
   return dom;

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/ButtonLink";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { getAttractions } from "@/features/attractions/data/attractions";
+import { readAttractions } from "@/features/attractions/data/attractions";
 import townships from "@/features/attractions/data/taichung-townships.json";
 import { sortAttractionsByTownshipOrder } from "@/features/attractions/lib/attractionFilters";
+import { readUser } from "@/features/auth/lib/authenticatedUser";
 import { FavoriteAttractionList } from "@/features/favorites/components/FavoriteAttractionList";
 
 export const metadata: Metadata = {
@@ -13,8 +14,14 @@ export const metadata: Metadata = {
   description: "查看已收藏的台中車泊景點。",
 };
 
-export default function FavoritesPage() {
-  const attractions = getAttractions();
+export default async function FavoritesPage() {
+  const user = await readUser();
+
+  if (!user) {
+    redirect("/");
+  }
+
+  const attractions = readAttractions();
   const sortedAttractions = sortAttractionsByTownshipOrder(
     attractions,
     townships,
@@ -29,7 +36,7 @@ export default function FavoritesPage() {
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
           我的收藏
         </h1>
-        <p className="mt-2 text-muted">集中查看想造訪的車泊景點。</p>
+        <p className="mt-2 text-muted-foreground">集中查看想造訪的車泊景點。</p>
       </div>
 
       <section aria-label="收藏景點列表">
@@ -38,11 +45,9 @@ export default function FavoritesPage() {
           emptyState={
             <EmptyState
               title="尚未收藏景點"
-              description="回到首頁，點擊卡片右上角的愛心即可加入收藏。"
+              description="回到首頁，點擊卡片右上角的書籤即可加入收藏。"
               action={
-                <Button asChild>
-                  <Link href="/">回首頁探索景點</Link>
-                </Button>
+                <ButtonLink href="/">回首頁探索景點</ButtonLink>
               }
             />
           }

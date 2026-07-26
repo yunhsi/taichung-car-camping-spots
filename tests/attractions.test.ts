@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getAttractionDetailById } from "../src/features/attractions/data/attractionDetails";
-import { getAttractions } from "../src/features/attractions/data/attractions";
+import { readAttraction } from "../src/features/attractions/data/attraction";
+import { readAttractions } from "../src/features/attractions/data/attractions";
 
 test("可使用列表中的景點 id 取得完整詳細資料", () => {
-  const attractions = getAttractions();
+  const attractions = readAttractions();
   const listItem = attractions[0];
-  const detail = getAttractionDetailById(listItem.id);
+  const detail = readAttraction(listItem.id);
 
   assert.ok(detail);
   assert.equal(detail.id, listItem.id);
@@ -17,5 +17,5 @@ test("可使用列表中的景點 id 取得完整詳細資料", () => {
 });
 
 test("不存在的景點 id 會回傳 null", () => {
-  assert.equal(getAttractionDetailById("not-found"), null);
+  assert.equal(readAttraction("not-found"), null);
 });

@@ -11,6 +11,8 @@ export interface AttractionListItem {
   googleMapsUrl: string;
 }
 
+export type AttractionSortMode = "distance" | "township";
+
 export interface AttractionDetail {
   id: string;
   name: string;

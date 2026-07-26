@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { GoToTopButton } from "@/components/site/GoToTopButton";
+import { ToastProvider } from "@/components/ui/Toast";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 
 import "./globals.css";
@@ -8,19 +9,19 @@ import "./globals.css";
 const SITE_TITLE = "台中車泊景點";
 const SITE_DESCRIPTION =
   "探索台中適合車泊的地點，規劃下一趟自在安心的車旅。";
-const deploymentUrl =
+const DEPLOYMENT_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   process.env.VERCEL_PROJECT_PRODUCTION_URL ??
   process.env.VERCEL_URL;
-const metadataBase = new URL(
-  deploymentUrl
-    ? deploymentUrl.startsWith("http")
-      ? deploymentUrl
-      : `https://${deploymentUrl}`
+const METADATA_BASE = new URL(
+  DEPLOYMENT_URL
+    ? DEPLOYMENT_URL.startsWith("http")
+      ? DEPLOYMENT_URL
+      : `https://${DEPLOYMENT_URL}`
     : "http://localhost:3000",
 );
 
-const themeScript = `
+const THEME_SCRIPT = `
   try {
     const savedTheme = localStorage.getItem("theme");
     // 作業系統是否偏好深色模式
@@ -38,7 +39,7 @@ const themeScript = `
 `;
 
 export const metadata: Metadata = {
-  metadataBase,
+  metadataBase: METADATA_BASE,
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: SITE_TITLE,
@@ -69,12 +70,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="flex min-h-full flex-col">
         <TooltipProvider>
-          {children}
-          <GoToTopButton />
+          <ToastProvider>
+            {children}
+            <GoToTopButton />
+          </ToastProvider>
         </TooltipProvider>
       </body>
     </html>

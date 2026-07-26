@@ -22,6 +22,6 @@ const attractions: AttractionListItem[] = attractionListData.map(
   }),
 );
 
-export function getAttractions(): AttractionListItem[] {
+export function readAttractions(): AttractionListItem[] {
   return attractions;
 }

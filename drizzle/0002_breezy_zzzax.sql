@@ -1,0 +1,1 @@
+CREATE INDEX "reviews_list_attraction_updated_idx" ON "reviews_list" USING btree ("attraction_id","updated_at");

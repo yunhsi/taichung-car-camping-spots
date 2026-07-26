@@ -4,11 +4,11 @@ import test from "node:test";
 import {
   createAttractionDetails,
   createAttractionList,
-  getGoogleMapUrl,
+  getGoogleMapsUrl,
   validateCsvRows,
 } from "../scripts/convertAttractions";
 
-const validRow = {
+const VALID_ROW = {
   編號: "1",
   名稱: "範例景點",
   介紹內容: "",
@@ -31,20 +31,20 @@ const validRow = {
 };
 
 test("CSV 驗證會接受空字串，但拒絕遺漏的欄位值", () => {
-  assert.doesNotThrow(() => validateCsvRows([validRow]));
+  assert.doesNotThrow(() => validateCsvRows([VALID_ROW]));
 
-  const invalidRow = { ...validRow };
-  delete (invalidRow as Partial<typeof validRow>).服務設施;
+  const inVALID_ROW = { ...VALID_ROW };
+  delete (inVALID_ROW as Partial<typeof VALID_ROW>).服務設施;
 
   assert.throws(
-    () => validateCsvRows([invalidRow]),
+    () => validateCsvRows([inVALID_ROW]),
     /第 2 列的「服務設施」/,
   );
 });
 
 test("Google Maps 網址包含景點、地址與 Place ID", () => {
   const url = new URL(
-    getGoogleMapUrl(
+    getGoogleMapsUrl(
       "example-place-id",
       "範例景點",
       "臺中市和平區範例路 1 號",

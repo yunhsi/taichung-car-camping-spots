@@ -22,7 +22,7 @@ const VISIBLE_CLASSES =
 const HIDDEN_CLASSES =
   "pointer-events-none translate-y-[calc(100%+2.5rem+env(safe-area-inset-bottom))] opacity-0 transition-[transform_1200ms_cubic-bezier(0.4,0,1,1),opacity_300ms_ease-in_450ms]";
 const BUTTON_CLASSES =
-  "size-12 rounded-full border-border/80 bg-surface/90 text-foreground shadow-[0_8px_24px_rgb(0_0_0/0.12)] backdrop-blur-md transition-[transform,box-shadow,border-color] duration-300 hover:border-foreground/25 hover:bg-surface hover:shadow-[0_12px_28px_rgb(0_0_0/0.16)] active:scale-95 motion-reduce:transform-none motion-reduce:transition-none";
+  "rounded-full border-border/80 bg-card/90 text-foreground shadow-[0_8px_24px_rgb(0_0_0/0.12)] backdrop-blur-md transition-[transform,box-shadow,border-color] duration-300 hover:border-foreground/25 hover:bg-card hover:shadow-[0_12px_28px_rgb(0_0_0/0.16)] active:scale-95 motion-reduce:transform-none motion-reduce:transition-none";
 
 let isMobileScrolling = false;
 
@@ -103,21 +103,23 @@ export function GoToTopButton() {
       )}
     >
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={scrollToTop}
-            aria-label="回到頁面頂端"
-            tabIndex={isVisible ? undefined : -1}
-            className={BUTTON_CLASSES}
-          >
-            <ArrowUp
-              aria-hidden="true"
-              strokeWidth="2.25"
-              className="size-6"
+        <TooltipTrigger
+          render={
+            <Button
+              variant="outline"
+              size="icon-lg"
+              onClick={scrollToTop}
+              aria-label="回到頁面頂端"
+              tabIndex={isVisible ? undefined : -1}
+              className={BUTTON_CLASSES}
             />
-          </Button>
+          }
+        >
+          <ArrowUp
+            aria-hidden="true"
+            strokeWidth="2.25"
+            className="size-6"
+          />
         </TooltipTrigger>
         <TooltipContent side="left">回到頁面頂端</TooltipContent>
       </Tooltip>
