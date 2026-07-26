@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 台中車泊景點
 
-## Getting Started
+以臺中市觀光景點開放資料整理適合車泊旅人的免費景點，提供地區與主題篩選、Google Maps 導航、深色模式及本機收藏功能。
 
-First, run the development server:
+## 技術棧
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 16（App Router）
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Radix UI
+
+## 專案結構
+
+```text
+src/
+├── app/                    # 路由、頁面與全域樣式
+├── components/
+│   ├── site/               # 網站層級元件
+│   └── ui/                 # 可重用的基礎 UI
+├── features/
+│   ├── attractions/
+│   │   ├── components/     # 景點畫面元件
+│   │   ├── data/           # 景點來源與轉換後資料
+│   │   ├── lib/            # 篩選、識別與距離邏輯
+│   │   └── types.ts
+│   └── favorites/          # 收藏狀態、儲存與畫面元件
+└── lib/                    # 跨功能共用工具
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 常用指令
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint       # ESLint
+npm run typecheck  # TypeScript 型別檢查
+npm run test       # 核心邏輯測試
+npm run check      # 依序執行以上所有檢查
+npm run build      # Production build
+npm run convert    # 由 CSV 重新產生景點與主題 JSON
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 資料處理
 
-## Learn More
+原始資料位於
+`src/features/attractions/data/taichung-attraction.csv`。轉換腳本會：
 
-To learn more about Next.js, take a look at the following resources:
+1. 驗證必要欄位。
+2. 保留同時提供停車場與公廁的景點。
+3. 保留免費或未標示收費的景點。
+4. 排除不適合車泊情境的主題分類。
+5. 產生精簡的景點列表、以景點 ID 索引的詳細資料、主題清單與 Google Maps 網址。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+產出的景點資料分為：
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `taichung-attraction-list.json`：列表顯示、篩選及排序所需欄位。
+- `taichung-attraction-details.json`：以景點 ID 為 key 的名稱、介紹、停車資訊、旅遊叮嚀、相關連結及 Google Maps 網址。
